@@ -1,3 +1,6 @@
+# github.com/BurntSushi/toml v0.3.1
+## explicit
+github.com/BurntSushi/toml
 # github.com/Masterminds/goutils v1.1.0
 ## explicit
 github.com/Masterminds/goutils
@@ -12,6 +15,15 @@ github.com/Masterminds/sprig
 github.com/google/uuid
 # github.com/hashicorp/hcl v1.0.0
 ## explicit
+github.com/hashicorp/hcl
+github.com/hashicorp/hcl/hcl/ast
+github.com/hashicorp/hcl/hcl/parser
+github.com/hashicorp/hcl/hcl/scanner
+github.com/hashicorp/hcl/hcl/strconv
+github.com/hashicorp/hcl/hcl/token
+github.com/hashicorp/hcl/json/parser
+github.com/hashicorp/hcl/json/scanner
+github.com/hashicorp/hcl/json/token
 # github.com/huandu/xstrings v1.3.2
 ## explicit
 github.com/huandu/xstrings
@@ -26,6 +38,7 @@ github.com/mitchellh/copystructure
 github.com/mitchellh/reflectwalk
 # github.com/pelletier/go-toml v1.8.0
 ## explicit
+github.com/pelletier/go-toml
 # github.com/spf13/pflag v1.0.5
 ## explicit
 github.com/spf13/pflag
@@ -35,3 +48,4 @@ golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/scrypt
 # gopkg.in/yaml.v2 v2.3.0
 ## explicit
+gopkg.in/yaml.v2
