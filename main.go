@@ -53,6 +53,25 @@ func main() {
 	fmt.Println(string(out))
 }
 
+func input(in []byte, format string) (interface{}, error) {
+	var unmarshalFn func(data []byte, v interface{}) error
+	switch strings.ToLower(format) {
+	case "json":
+		unmarshalFn = json.Unmarshal
+	case "yaml":
+		unmarshalFn = yaml.Unmarshal
+	case "toml":
+		unmarshalFn = toml.Unmarshal
+	case "hcl":
+		unmarshalFn = hcl.Unmarshal
+	default:
+		return nil, fmt.Errorf("unsupported input format: %s", format)
+	}
+	var v interface{}
+	err := unmarshalFn(in, &v)
+	return v, err
+}
+
 func output(v interface{}, format string) ([]byte, error) {
 	var marshalFn func(v interface{}) ([]byte, error)
 	switch strings.ToLower(*outputFormat) {
@@ -73,25 +92,6 @@ func output(v interface{}, format string) ([]byte, error) {
 		return nil, fmt.Errorf("unsupported input format: %s", format)
 	}
 	return marshalFn(v)
-}
-
-func input(in []byte, format string) (interface{}, error) {
-	var unmarshalFn func(data []byte, v interface{}) error
-	switch strings.ToLower(format) {
-	case "json":
-		unmarshalFn = json.Unmarshal
-	case "yaml":
-		unmarshalFn = yaml.Unmarshal
-	case "toml":
-		unmarshalFn = toml.Unmarshal
-	case "hcl":
-		unmarshalFn = hcl.Unmarshal
-	default:
-		return nil, fmt.Errorf("unsupported input format: %s", format)
-	}
-	var v interface{}
-	err := unmarshalFn(in, &v)
-	return v, err
 }
 
 func check(err error, msg string) {
