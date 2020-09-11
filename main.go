@@ -18,7 +18,7 @@ import (
 
 var (
 	version      = "unknown"
-	printVersion = flag.Bool("version", false, "Print program version")
+	printVersion = flag.BoolP("version", "v", false, "Print program version")
 	inputFormat  = flag.StringP("input", "i", "json", "Input format. One of: json|yaml|toml|hcl")
 	outputFormat = flag.StringP("output", "o", "go-template", "Output format. One of: go-template|json|yaml|toml")
 	outTemplate  = flag.StringP("template", "t", `{{.}}`, "Go template string")
