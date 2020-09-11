@@ -2,6 +2,12 @@
 
 Convert between input and output formats, including Go templates.
 
+### Install
+
+```
+go get github.com/pbar1/gq
+```
+
 ### Usage
 ```
 Reads from stdin and writes to stdout. Can convert between input and output formats, including Go templates.
