@@ -33,7 +33,7 @@ Examples:
   $ kubectl get namespaces -o yaml | gq -i yaml -t '{{range .items}}{{.metadata.name}}{{printf "\n"}}{{end}}'
 
   Convert Terraform HCL into JSON (and feed that into jq for querying!)
-  cat *.tf | gq -i hcl -o json | jq
+  $ cat *.tf | gq -i hcl -o json | jq
 `)
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 		flag.PrintDefaults()
@@ -48,12 +48,18 @@ func main() {
 		os.Exit(0)
 	}
 
-	var filename string
+	filename := flag.Arg(0)
+	if filename == "" || filename == "-" {
+		filename = "stdin"
+	}
+
 	var in []byte
 	var err error
 
-	if flag.Arg(0) == "" || flag.Arg(0) == "-" {
-		filename = "stdin"
+	f := flag.Arg(0)
+	fmt.Print(f)
+
+	if filename == "stdin" {
 		in, err = ioutil.ReadAll(os.Stdin)
 	} else {
 		in, err = ioutil.ReadFile(filename)

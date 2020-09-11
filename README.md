@@ -11,7 +11,7 @@ Examples:
   $ kubectl get namespaces -o yaml | gq -i yaml -t '{{range .items}}{{.metadata.name}}{{printf "\n"}}{{end}}'
 
   Convert Terraform HCL into JSON (and feed that into jq for querying!)
-  cat *.tf | gq -i hcl -o json | jq
+  $ cat *.tf | gq -i hcl -o json | jq
 
 Usage of gq:
   -i, --input string      Input format. One of: json|yaml|toml|hcl (default "json")
