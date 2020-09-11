@@ -56,9 +56,6 @@ func main() {
 	var in []byte
 	var err error
 
-	f := flag.Arg(0)
-	fmt.Print(f)
-
 	if filename == "stdin" {
 		in, err = ioutil.ReadAll(os.Stdin)
 	} else {
