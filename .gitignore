@@ -1,0 +1,5 @@
+**/.idea/*
+hcl2json*
+*.tf
+**/.DS_Store
+example.json
