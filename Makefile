@@ -4,7 +4,7 @@ export DOCKER_BUILDKIT := 1
 BIN     := gq
 VERSION := $(shell git describe --tags --always --dirty)
 LDFLAGS := -ldflags="-s -w -X main.version=$(VERSION)"
-IMAGE   := docker.io/pbar1/$(BIN)
+IMAGE   := docker.pkg.github.com/pbar1/gq/$(BIN)
 
 build: clean
 	GOOS=linux   GOARCH=arm64 go build -o bin/$(BIN)_linux_arm64       $(LDFLAGS) main.go
