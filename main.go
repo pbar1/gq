@@ -95,7 +95,10 @@ func output(v interface{}, format string) ([]byte, error) {
 	var marshalFn func(v interface{}) ([]byte, error)
 	switch strings.ToLower(*outputFormat) {
 	case "go-template":
-		tpl := template.Must(template.New("go-template").Funcs(sprig.TxtFuncMap()).Parse(*outTemplate))
+		tpl, err := template.New("go-template").Funcs(sprig.TxtFuncMap()).Parse(*outTemplate)
+		if err != nil {
+			return nil, err
+		}
 		var buf bytes.Buffer
 		if err := tpl.Execute(&buf, v); err != nil {
 			return nil, err
