@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/hashicorp/hcl"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pelletier/go-toml"
 	flag "github.com/spf13/pflag"
 	"gopkg.in/yaml.v2"
@@ -76,7 +76,7 @@ func input(in []byte, format string) (interface{}, error) {
 	var unmarshalFn func(data []byte, v interface{}) error
 	switch strings.ToLower(format) {
 	case "json":
-		unmarshalFn = json.Unmarshal
+		unmarshalFn = jsoniter.Unmarshal
 	case "yaml":
 		unmarshalFn = yaml.Unmarshal
 	case "toml":
@@ -105,7 +105,7 @@ func output(v interface{}, format string) ([]byte, error) {
 		}
 		return buf.Bytes(), nil
 	case "json":
-		marshalFn = json.Marshal
+		marshalFn = jsoniter.Marshal
 	case "yaml":
 		marshalFn = yaml.Marshal
 	case "toml":
