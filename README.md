@@ -4,11 +4,14 @@ Convert between input and output formats, including Go templates.
 
 ### Install
 
+Either grab the binary from the Releases page, pull the Docker image in this repository, or run the following if you have `$GOPATH/bin` on your `$PATH`:
+
 ```
 go get github.com/pbar1/gq
 ```
 
 ### Usage
+
 ```
 Reads from stdin and writes to stdout. Can convert between input and output formats, including Go templates.
 
