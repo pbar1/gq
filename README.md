@@ -20,6 +20,9 @@ Examples:
   Feed Kubernetes YAML into gq and render it as a Go template
   $ kubectl get namespaces -o yaml | gq -i yaml '{{range .items}}{{.metadata.name}}{{println}}{{end}}'
 
+  You can omit the {{ }} if the template is simple enough. Sprig and more functions are in scope.
+  $ kubectl get secret demo-tls -o json | gq '(index (index .data "tls.crt" | b64dec | x509decode) 0).NotBefore'
+
   Convert Terraform HCL into JSON (and feed that into jq for querying!)
   $ cat *.tf | gq -i hcl -o json | jq
 
