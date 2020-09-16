@@ -23,7 +23,7 @@ Default Go template is "{{.}}"
 
 Examples:
   Feed Kubernetes YAML into gq and render it as a Go template
-  $ kubectl get namespaces -o yaml | gq -i yaml -t '{{range .items}}{{.metadata.name}}{{println}}{{end}}'
+  $ kubectl get namespaces -o yaml | gq -i yaml '{{range .items}}{{.metadata.name}}{{println}}{{end}}'
 
   Convert Terraform HCL into JSON (and feed that into jq for querying!)
   $ cat *.tf | gq -i hcl -o json | jq`
