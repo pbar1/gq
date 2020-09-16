@@ -13,18 +13,20 @@ go get github.com/pbar1/gq
 ### Usage
 
 ```
-Reads from stdin and writes to stdout. Can convert between input and output formats, including Go templates.
+Converts between input and output formats, including Go templates. Reads from stdin and writes to stdout.
+Default Go template is "{{.}}"
 
 Examples:
   Feed Kubernetes YAML into gq and render it as a Go template
-  $ kubectl get namespaces -o yaml | gq -i yaml -t '{{range .items}}{{.metadata.name}}{{printf "\n"}}{{end}}'
+  $ kubectl get namespaces -o yaml | gq -i yaml '{{range .items}}{{.metadata.name}}{{println}}{{end}}'
 
   Convert Terraform HCL into JSON (and feed that into jq for querying!)
   $ cat *.tf | gq -i hcl -o json | jq
 
 Usage of gq:
-  -i, --input string      Input format. One of: json|yaml|toml|hcl (default "json")
-  -o, --output string     Output format. One of: go-template|json|yaml|toml (default "go-template")
-  -t, --template string   Go template string (default "{{.}}")
-  -v, --version           Print program version
+  -f, --file string     File to read input from. Defaults to stdin. (default "-")
+  -i, --input string    Input format. One of: json|yaml|toml|hcl (default "json")
+  -o, --output string   Output format. One of: go-template|json|yaml|toml (default "go-template")
+  -s, --simple          Automatically wraps template in {{ }} if not already (default true)
+  -v, --version         Print program version
 ```
