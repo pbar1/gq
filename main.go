@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -31,6 +33,7 @@ var (
 	inputFmt     = flag.StringP("input", "i", "json", "Input format. One of: json|yaml|toml|hcl")
 	outputFmt    = flag.StringP("output", "o", "go-template", "Output format. One of: go-template|json|yaml|toml")
 	outputTpl    = flag.StringP("template", "t", `{{.}}`, "Go template string")
+	simple       = flag.BoolP("simple", "s", true, "Automatically wraps template in {{ }} if not already")
 	inputFns     = map[string]func([]byte, interface{}) error{
 		"json": json.Unmarshal,
 		"yaml": yaml.Unmarshal,
@@ -38,7 +41,7 @@ var (
 		"hcl":  hcl.Unmarshal,
 	}
 	outputFns = map[string]func(v interface{}) ([]byte, error){
-		"go-template": goTplMarshal,
+		"go-template": gotplMarshal,
 		"json":        json.Marshal,
 		"yaml":        yaml.Marshal,
 		"toml":        toml.Marshal,
@@ -99,8 +102,16 @@ func output(v interface{}, format string) ([]byte, error) {
 	return fn(v)
 }
 
-func goTplMarshal(v interface{}) ([]byte, error) {
-	tpl, err := template.New("go-template").Funcs(sprig.TxtFuncMap()).Parse(*outputTpl)
+func gotplMarshal(v interface{}) ([]byte, error) {
+	funcmap := map[string]interface{}(sprig.TxtFuncMap())
+	funcmap["x509decode"] = x509decode
+
+	tplStr := *outputTpl
+	if *simple && !strings.Contains(tplStr, "{{") {
+		tplStr = "{{" + tplStr + "}}"
+	}
+
+	tpl, err := template.New("go-template").Funcs(funcmap).Parse(tplStr)
 	if err != nil {
 		return nil, err
 	}
@@ -118,4 +129,20 @@ func check(err error, msg string) {
 		}
 		os.Exit(1)
 	}
+}
+
+func x509decode(pemData string) ([]x509.Certificate, error) {
+	block, _ := pem.Decode([]byte(pemData))
+	if block == nil {
+		return nil, fmt.Errorf("pem decoded block empty")
+	}
+	crts, err := x509.ParseCertificates(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	crtsCopy := make([]x509.Certificate, 0, 0)
+	for _, c := range crts {
+		crtsCopy = append(crtsCopy, *c)
+	}
+	return crtsCopy, nil
 }
