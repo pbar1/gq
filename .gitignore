@@ -2,5 +2,5 @@
 hcl2json*
 *.tf
 **/.DS_Store
-example.json
+test/example_tf11.json
 bin/*

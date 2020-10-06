@@ -25,8 +25,16 @@ Examples:
   Feed Kubernetes YAML into gq and render it as a Go template
   $ kubectl get namespaces -o yaml | gq -i yaml '{{range .items}}{{.metadata.name}}{{println}}{{end}}'
 
+  You can omit the {{ }} if the template is simple enough. Sprig and more functions are in scope.
+  $ kubectl get secret demo-tls -o json | gq '(index (index .data "tls.crt" | b64dec | x509decode) 0).NotBefore'
+
   Convert Terraform HCL into JSON (and feed that into jq for querying!)
-  $ cat *.tf | gq -i hcl -o json | jq`
+  $ cat *.tf | gq -i hcl -o json | jq
+
+Usage:
+  gq [template string] [flags]
+
+Flags:`
 
 var (
 	version      = "unknown"
@@ -48,12 +56,13 @@ var (
 		"yaml":        yaml.Marshal,
 		"toml":        toml.Marshal,
 	}
+	tplFns map[string]interface{}
 )
 
 func init() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "%s\n\n", helpText)
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+		_, err := fmt.Fprintln(os.Stderr, helpText)
+		check(err, "unable to print help text to stderr")
 		flag.PrintDefaults()
 	}
 }
@@ -109,16 +118,22 @@ func output(v interface{}, format string) ([]byte, error) {
 }
 
 func gotplMarshal(v interface{}) ([]byte, error) {
-	funcmap := map[string]interface{}(sprig.TxtFuncMap())
-	funcmap["x509decode"] = x509decode
+	tplFns = sprig.TxtFuncMap()
+	tplFns["x509decode"] = x509decode
+	tplFns["access"] = access
+	tplFns["fnptr"] = fnptr
 
 	// TODO: think about extracting this logic
 	tplStr := outputTpl
-	if *simple && !strings.Contains(tplStr, "{{") {
-		tplStr = "{{" + tplStr + "}}"
+	if *simple {
+		if !strings.Contains(tplStr, "{{") {
+			tplStr = "{{" + tplStr + "}}"
+		}
+		tplStr = strings.ReplaceAll(tplStr, "[", " | access ")
+		tplStr = strings.ReplaceAll(tplStr, "]", " ")
 	}
 
-	tpl, err := template.New("go-template").Funcs(funcmap).Parse(tplStr)
+	tpl, err := template.New("base").Funcs(tplFns).Parse(tplStr)
 	if err != nil {
 		return nil, err
 	}
@@ -152,4 +167,22 @@ func x509decode(pemData string) ([]x509.Certificate, error) {
 		crtsCopy = append(crtsCopy, *c)
 	}
 	return crtsCopy, nil
+}
+
+func access(property interface{}, obj interface{}) (interface{}, error) {
+	if x, ok := obj.(map[interface{}]interface{}); ok {
+		return x[property], nil
+	}
+	if x, ok := obj.([]interface{}); ok {
+		i, iok := property.(int)
+		if !iok {
+			return nil, fmt.Errorf("%v not an int for list accessor", property)
+		}
+		return x[i], nil
+	}
+	return nil, nil
+}
+
+func fnptr(f string) interface{} {
+	return tplFns[f]
 }
