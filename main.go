@@ -11,11 +11,13 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/hashicorp/hcl"
 	json "github.com/json-iterator/go"
 	"github.com/pelletier/go-toml"
 	flag "github.com/spf13/pflag"
 	"gopkg.in/yaml.v2"
+	"k8s.io/client-go/util/jsonpath"
 )
 
 const helpText = `Converts between input and output formats, including Go templates. Reads from stdin and writes to stdout.
@@ -25,7 +27,7 @@ Examples:
   Feed Kubernetes YAML into gq and render it as a Go template
   $ kubectl get namespaces -o yaml | gq -i yaml '{{range .items}}{{.metadata.name}}{{println}}{{end}}'
 
-  You can omit the {{ }} if the template is simple enough. Sprig and more functions are in scope.
+  You can omit the {{ }} if the Go template is simple enough. Sprig and more functions are in scope.
   $ kubectl get secret demo-tls -o json | gq '(index (index .data "tls.crt" | b64dec | x509decode) 0).NotBefore'
 
   Convert Terraform HCL into JSON (and feed that into jq for querying!)
@@ -37,26 +39,31 @@ Usage:
 Flags:`
 
 var (
-	version      = "unknown"
-	outputTpl    = `{{.}}`
+	version   = "unknown"
+	outputTpl = `{{.}}`
+
 	printVersion = flag.BoolP("version", "v", false, "Print program version")
 	filename     = flag.StringP("file", "f", "-", "File to read input from. Defaults to stdin.")
 	inputFmt     = flag.StringP("input", "i", "json", "Input format. One of: json|yaml|toml|hcl")
-	outputFmt    = flag.StringP("output", "o", "go-template", "Output format. One of: go-template|json|yaml|toml")
-	simple       = flag.BoolP("simple", "s", true, "Automatically wraps template in {{ }} if not already")
-	inputFns     = map[string]func([]byte, interface{}) error{
+	outputFmt    = flag.StringP("output", "o", "go-template", "Output format. One of: go-template|jsonpath|json|yaml|toml")
+	simple       = flag.BoolP("simple", "s", true, "Automatically wraps Go template in {{ }} if not already")
+
+	inputFns = map[string]func([]byte, interface{}) error{
 		"json": json.Unmarshal,
 		"yaml": yaml.Unmarshal,
 		"toml": toml.Unmarshal,
 		"hcl":  hcl.Unmarshal,
 	}
+
 	outputFns = map[string]func(v interface{}) ([]byte, error){
-		"go-template": gotplMarshal,
+		"go-template": goTemplateMarshal,
+		"jsonpath":    jsonpathMarshal,
 		"json":        json.Marshal,
 		"yaml":        yaml.Marshal,
 		"toml":        toml.Marshal,
 	}
-	tplFns map[string]interface{}
+
+	tplFns = sprig.TxtFuncMap()
 )
 
 func init() {
@@ -65,6 +72,10 @@ func init() {
 		check(err, "unable to print help text to stderr")
 		flag.PrintDefaults()
 	}
+
+	tplFns["fnptr"] = fnptr
+	tplFns["x509decode"] = x509decode
+	tplFns["jwtdecode"] = jwtdecode
 }
 
 func main() {
@@ -75,8 +86,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	if flag.Arg(0) != "" {
-		outputTpl = flag.Arg(0)
+	if len(flag.Args()) > 0 {
+		outputTpl = strings.Join(flag.Args(), " ")
 	}
 
 	var in []byte
@@ -99,6 +110,16 @@ func main() {
 	fmt.Println(string(out))
 }
 
+// check fatally exits with an error message if an error exists.
+func check(err error, msg string) {
+	if err != nil {
+		if _, err := fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err); err != nil {
+			panic(err)
+		}
+		os.Exit(1)
+	}
+}
+
 func input(in []byte, format string) (interface{}, error) {
 	fn, found := inputFns[strings.ToLower(format)]
 	if !found {
@@ -117,42 +138,57 @@ func output(v interface{}, format string) ([]byte, error) {
 	return fn(v)
 }
 
-func gotplMarshal(v interface{}) ([]byte, error) {
-	tplFns = sprig.TxtFuncMap()
-	tplFns["x509decode"] = x509decode
-	tplFns["access"] = access
-	tplFns["fnptr"] = fnptr
-
+// goTemplateMarshal renders a Go template. Sprig functions are in scope, as well as
+// a few custom functions defined in this package.
+func goTemplateMarshal(v interface{}) ([]byte, error) {
 	// TODO: think about extracting this logic
 	tplStr := outputTpl
 	if *simple {
 		if !strings.Contains(tplStr, "{{") {
 			tplStr = "{{" + tplStr + "}}"
 		}
-		tplStr = strings.ReplaceAll(tplStr, "[", " | access ")
-		tplStr = strings.ReplaceAll(tplStr, "]", " ")
 	}
 
 	tpl, err := template.New("base").Funcs(tplFns).Parse(tplStr)
 	if err != nil {
 		return nil, err
 	}
-	var buf bytes.Buffer
-	if err := tpl.Execute(&buf, v); err != nil {
+	buf := new(bytes.Buffer)
+	if err := tpl.Execute(buf, v); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-func check(err error, msg string) {
-	if err != nil {
-		if _, err := fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err); err != nil {
-			panic(err)
+// jsonpathMarshal renders a JSONPath template given in `kubectl` format.
+// More information: https://kubernetes.io/docs/reference/kubectl/jsonpath/
+func jsonpathMarshal(v interface{}) ([]byte, error) {
+	// TODO: think about extracting this logic
+	tplStr := outputTpl
+	if *simple {
+		if !strings.HasPrefix(tplStr, "{") {
+			tplStr = "{" + tplStr + "}"
 		}
-		os.Exit(1)
 	}
+
+	j := jsonpath.New("base")
+	buf := new(bytes.Buffer)
+	if err := j.Parse(tplStr); err != nil {
+		return nil, err
+	}
+	if err := j.Execute(buf, v); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
+// fnptr returns a reference to the function in the Go template function table
+// by the given name.
+func fnptr(f string) interface{} {
+	return tplFns[f]
+}
+
+// x509decode decodes and parses a PEM formatted X.509 certificate bundle.
 func x509decode(pemData string) ([]x509.Certificate, error) {
 	block, _ := pem.Decode([]byte(pemData))
 	if block == nil {
@@ -169,20 +205,12 @@ func x509decode(pemData string) ([]x509.Certificate, error) {
 	return crtsCopy, nil
 }
 
-func access(property interface{}, obj interface{}) (interface{}, error) {
-	if x, ok := obj.(map[interface{}]interface{}); ok {
-		return x[property], nil
+// jwtdecode decodes a JWT token string, without validating the signature.
+func jwtdecode(tokenData string) (*jwt.Token, error) {
+	parser := new(jwt.Parser)
+	token, _, err := parser.ParseUnverified(tokenData, jwt.MapClaims{})
+	if err != nil {
+		return nil, err
 	}
-	if x, ok := obj.([]interface{}); ok {
-		i, iok := property.(int)
-		if !iok {
-			return nil, fmt.Errorf("%v not an int for list accessor", property)
-		}
-		return x[i], nil
-	}
-	return nil, nil
-}
-
-func fnptr(f string) interface{} {
-	return tplFns[f]
+	return token, nil
 }

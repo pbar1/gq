@@ -7,6 +7,9 @@ github.com/Masterminds/semver
 # github.com/Masterminds/sprig v2.22.0+incompatible
 ## explicit
 github.com/Masterminds/sprig
+# github.com/dgrijalva/jwt-go v3.2.0+incompatible
+## explicit
+github.com/dgrijalva/jwt-go
 # github.com/google/uuid v1.1.2
 ## explicit
 github.com/google/uuid
@@ -57,3 +60,7 @@ golang.org/x/crypto/scrypt
 # gopkg.in/yaml.v2 v2.3.0
 ## explicit
 gopkg.in/yaml.v2
+# k8s.io/client-go v11.0.0+incompatible
+## explicit
+k8s.io/client-go/third_party/forked/golang/template
+k8s.io/client-go/util/jsonpath

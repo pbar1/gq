@@ -4,3 +4,4 @@ hcl2json*
 **/.DS_Store
 test/example_tf11.json
 bin/*
+test/*
