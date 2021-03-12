@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -34,9 +35,10 @@ var (
 
 	flagVersion = flag.BoolP("version", "v", false, "Print program version")
 	flagFile    = flag.StringP("file", "f", "-", "File to read input from. Defaults to stdin.")
-	flagInput   = flag.StringP("input", "i", "json", "Input format. One of: json|yaml|toml|hcl")
-	flagOutput  = flag.StringP("output", "o", "go-template", "Output format. One of: go-template|jsonpath|json|yaml|toml")
+	flagInput   = flag.StringP("input", "i", "json", "Input format. One of: "+inputFuncMap.Options())
+	flagOutput  = flag.StringP("output", "o", "go-template", "Output format. One of: "+outputFuncMap.Options())
 	flagSimple  = flag.BoolP("simple", "s", true, "Automatically wraps Go template in {{ }} if not already")
+	flagLines   = flag.BoolP("lines", "l", false, "Apply the operation to each line rather than the whole input together")
 )
 
 func init() {
@@ -61,24 +63,51 @@ func Execute(version string) {
 		argTemplate = strings.Join(flag.Args(), " ")
 	}
 
-	// read input from stdin by default, or a filename passed as a flag
-	var in []byte
-	var err error
-	if *flagFile == "" || *flagFile == "-" {
-		*flagFile = "stdin"
-		in, err = ioutil.ReadAll(os.Stdin)
+	// either read input line-by-line, or read whole input at once
+	if *flagLines {
+		var scanner *bufio.Scanner
+		if *flagFile == "" || *flagFile == "-" {
+			scanner = bufio.NewScanner(os.Stdin)
+		} else {
+			file, err := os.Open(*flagFile)
+			check(err, "unable to open input file "+*flagFile)
+			scanner = bufio.NewScanner(file)
+		}
+		for scanner.Scan() {
+			intermediate, err := input(scanner.Bytes(), *flagInput)
+			if err != nil {
+				msg := "unable to parse input as " + *flagInput
+				if _, err := fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err); err != nil {
+					panic(err)
+				}
+				continue
+			}
+			out, err := output(intermediate, *flagOutput)
+			if err != nil {
+				msg := "unable to render output as " + *flagOutput
+				if _, err := fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err); err != nil {
+					panic(err)
+				}
+				continue
+			}
+			fmt.Println(string(out))
+		}
 	} else {
-		in, err = ioutil.ReadFile(*flagFile)
+		var in []byte
+		var err error
+		if *flagFile == "" || *flagFile == "-" {
+			*flagFile = "stdin"
+			in, err = ioutil.ReadAll(os.Stdin)
+		} else {
+			in, err = ioutil.ReadFile(*flagFile)
+		}
+		check(err, "unable to read input from "+*flagFile)
+		intermediate, err := input(in, *flagInput)
+		check(err, "unable to parse input as "+*flagInput)
+		out, err := output(intermediate, *flagOutput)
+		check(err, "unable to render output as "+*flagOutput)
+		fmt.Println(string(out))
 	}
-	check(err, "unable to read input from "+*flagFile)
-
-	intermediate, err := input(in, *flagInput)
-	check(err, "unable to parse input as "+*flagInput)
-
-	out, err := output(intermediate, *flagOutput)
-	check(err, "unable to render output as "+*flagOutput)
-
-	fmt.Println(string(out))
 }
 
 // check fatally exits with an error message if an error exists.
