@@ -14,15 +14,12 @@ require (
 	github.com/json-iterator/go v1.1.10
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pelletier/go-toml v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1 // indirect
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
 	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/kubernetes v1.19.2 // indirect
 )
 
 replace k8s.io/api => k8s.io/api v0.19.2

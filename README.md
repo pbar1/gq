@@ -10,6 +10,14 @@ Either grab the binary from the Releases page, pull the Docker image in this rep
 go get github.com/pbar1/gq
 ```
 
+### Examples
+
+Export Terraform outputs as shell variables:
+
+```sh
+eval "$(terraform output -json | gq '{{range $k, $v := .}}{{printf "export %s=\"%s\"\n" ($k | upper) $v.value}}{{end}}' | grep AWS)
+```
+
 ### Usage
 
 ```
