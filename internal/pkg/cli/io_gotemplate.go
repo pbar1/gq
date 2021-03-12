@@ -78,7 +78,7 @@ func x509Decode(pemData string) ([]x509.Certificate, error) {
 	if err != nil {
 		return nil, err
 	}
-	crtsCopy := make([]x509.Certificate, 0, 0)
+	crtsCopy := make([]x509.Certificate, 0)
 	for _, c := range crts {
 		crtsCopy = append(crtsCopy, *c)
 	}

@@ -10,15 +10,20 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type (
+	InputFuncMap  map[string]func([]byte, interface{}) error
+	OutputFuncMap map[string]func(v interface{}) ([]byte, error)
+)
+
 var (
-	inputFuncMap = map[string]func([]byte, interface{}) error{
+	inputFuncMap = InputFuncMap{
 		"json": json.Unmarshal,
 		"yaml": yaml.Unmarshal,
 		"toml": toml.Unmarshal,
 		"hcl":  hcl.Unmarshal,
 	}
 
-	outputFuncMap = map[string]func(v interface{}) ([]byte, error){
+	outputFuncMap = OutputFuncMap{
 		"go-template": goTemplateMarshal,
 		"jsonpath":    jsonpathMarshal,
 		"json":        json.Marshal,
@@ -45,4 +50,20 @@ func output(obj interface{}, format string) ([]byte, error) {
 		return nil, fmt.Errorf("unsupported output format: %s", format)
 	}
 	return marshal(obj)
+}
+
+func (m *InputFuncMap) Options() string {
+	keys := make([]string, 0)
+	for k := range *m {
+		keys = append(keys, k)
+	}
+	return strings.Join(keys, "|")
+}
+
+func (m *OutputFuncMap) Options() string {
+	keys := make([]string, 0)
+	for k := range *m {
+		keys = append(keys, k)
+	}
+	return strings.Join(keys, "|")
 }
