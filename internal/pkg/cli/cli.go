@@ -12,16 +12,16 @@ import (
 
 const (
 	helpText = `Converts between input and output formats, including Go templates. Reads from stdin and writes to stdout.
-Default Go template is "{{.}}"
+Default Go template is "{{ . }}"
 
 Examples:
   Feed Kubernetes YAML into gq and render it as a Go template
-  $ kubectl get namespaces -o json | gq '{{range .items}}{{println .metadata.name}}{{end}}'
+  $ kubectl get namespaces -o json | gq '{{ range .items }}{{ println .metadata.name }}{{ end }}'
 
-  You can omit the {{ }} if the Go template would be entirely contained within it. Sprig functions and more are available.
+  You can omit the "{{ }}" if the Go template would be entirely contained within it. Sprig functions and more are available.
   $ kubectl get secret demo-tls -o json | gq '(index (index .data "tls.crt" | b64dec | x509Decode) 0).NotBefore'
 
-  Convert Terraform HCL (v1) into JSON (and feed that into jq for querying!)
+  Convert Terraform HCL (v1) into JSON and feed that into jq for querying
   $ cat *.tf | gq -i hcl -o json | jq
 
 Usage:
@@ -33,12 +33,13 @@ Flags:`
 var (
 	argTemplate = defaultGoTemplate
 
-	flagVersion = flag.BoolP("version", "v", false, "Print program version")
+	flagVersion = flag.BoolP("version", "v", false, "Prints program version information")
 	flagFile    = flag.StringP("file", "f", "-", "File to read input from. Defaults to stdin.")
 	flagInput   = flag.StringP("input", "i", "json", "Input format. One of: "+inputFuncMap.Options())
 	flagOutput  = flag.StringP("output", "o", "go-template", "Output format. One of: "+outputFuncMap.Options())
-	flagSimple  = flag.BoolP("simple", "s", true, "Automatically wraps Go template in {{ }} if not already")
-	flagLines   = flag.BoolP("lines", "l", false, "Apply the operation to each line rather than the whole input together")
+	flagSimple  = flag.BoolP("simple", "s", true, `Automatically wraps Go template in "{{ ... }}" if not already`)
+	flagLines   = flag.BoolP("lines", "l", false, "Apply the operation to each line rather than the whole input")
+	flagRange   = flag.BoolP("range", "r", false, `Wraps Go template in "{{ range . }}{{ ... }}{{ end }}" for convenience`)
 )
 
 func init() {
@@ -90,7 +91,9 @@ func Execute(version string) {
 				}
 				continue
 			}
-			fmt.Println(string(out))
+			if len(out) > 0 {
+				fmt.Println(string(out))
+			}
 		}
 	} else {
 		var in []byte

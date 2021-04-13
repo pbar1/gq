@@ -19,8 +19,10 @@ const defaultGoTemplate = "{{.}}"
 func goTemplateMarshal(v interface{}) ([]byte, error) {
 	t := argTemplate
 
-	if *flagSimple {
-		if !strings.Contains(t, "{{") {
+	if !strings.Contains(t, "{{") {
+		if *flagRange {
+			t = "{{ range . }}{{" + t + "}}{{ end }}"
+		} else if *flagSimple {
 			t = "{{" + t + "}}"
 		}
 	}
@@ -59,7 +61,7 @@ func fnptr(f string) interface{} {
 }
 
 // base64Decode decodes a standard base64-encoded string. For compatibility with
-// the Kubernetes CLI: https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/cli-runtime/pkg/printers/template.go
+// kubectl: https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/cli-runtime/pkg/printers/template.go
 func base64Decode(v string) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(v)
 	if err != nil {
