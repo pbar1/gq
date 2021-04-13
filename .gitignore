@@ -5,3 +5,4 @@ hcl2json*
 test/example_tf11.json
 bin/*
 test/*
+book
