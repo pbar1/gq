@@ -17,6 +17,7 @@ require (
 	github.com/pelletier/go-toml v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1 // indirect
+	github.com/tmccombs/hcl2json v0.3.3
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
 	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/client-go v11.0.0+incompatible

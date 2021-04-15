@@ -21,6 +21,7 @@ var (
 		"yaml": yaml.Unmarshal,
 		"toml": toml.Unmarshal,
 		"hcl":  hcl.Unmarshal,
+		"hcl2": hcl2Unmarshal,
 	}
 
 	outputFuncMap = OutputFuncMap{
