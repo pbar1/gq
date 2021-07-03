@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/hashicorp/hcl"
@@ -54,17 +55,19 @@ func output(obj interface{}, format string) ([]byte, error) {
 }
 
 func (m *InputFuncMap) Options() string {
-	keys := make([]string, 0)
+	keys := make(sort.StringSlice, 0)
 	for k := range *m {
 		keys = append(keys, k)
 	}
+	keys.Sort()
 	return strings.Join(keys, "|")
 }
 
 func (m *OutputFuncMap) Options() string {
-	keys := make([]string, 0)
+	keys := make(sort.StringSlice, 0)
 	for k := range *m {
 		keys = append(keys, k)
 	}
+	keys.Sort()
 	return strings.Join(keys, "|")
 }
