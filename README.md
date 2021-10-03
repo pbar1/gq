@@ -3,6 +3,9 @@
 <h3 align="center">Go template command line filter</h3>
 
 <p align="center">
+  <a href="https://github.com/pbar1/gq/actions/workflows/release.yml">
+    <img alt="GitHub Release" src="https://github.com/pbar1/gq/actions/workflows/release.yml/badge.svg">
+  </a>
   <a href="https://goreportcard.com/report/github.com/pbar1/gq">
     <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/pbar1/mfaws">
   </a>
