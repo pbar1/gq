@@ -33,6 +33,7 @@ tasks:
     - echo {{.VERSION}}
 
   build:
+    desc: Alias for "bin:build"
     deps:
     - bin:build
 
@@ -101,6 +102,7 @@ tasks:
     - docker inspect --type=image {{.BUILD_IMAGE}}
 
   image:
+    desc: Alias for "image:build"
     deps:
     - image:build
 
