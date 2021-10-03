@@ -3,7 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 
@@ -107,9 +107,9 @@ func Execute(version string) {
 		var err error
 		if *flagFile == "" || *flagFile == "-" {
 			*flagFile = "stdin"
-			in, err = ioutil.ReadAll(os.Stdin)
+			in, err = io.ReadAll(os.Stdin)
 		} else {
-			in, err = ioutil.ReadFile(*flagFile)
+			in, err = os.ReadFile(*flagFile)
 		}
 		check(err, "unable to read input from "+*flagFile)
 		intermediate, err := Input(in, *flagInput)
