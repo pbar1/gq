@@ -1,8 +1,9 @@
 **/.idea/*
-hcl2json*
-*.tf
+
 **/.DS_Store
-test/example_tf11.json
+
 bin/*
 test/*
-book
+book/
+
+*.tf

@@ -1,12 +1,9 @@
 [book]
 title = "gq Documentation"
 authors = ["Pierce Bartine"]
-description = "Documentation and examples for gq, a Go templates command line filter."
+description = "Documentation and examples for gq, a Go templates command line filter"
 language = "en"
-src = "docs-src"
-
-[build]
-build-dir = "docs"
+src = "docs"
 
 [output.html]
 git-repository-url = "https://github.com/pbar1/gq"
