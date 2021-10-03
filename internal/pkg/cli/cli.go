@@ -33,13 +33,14 @@ Flags:`
 var (
 	argTemplate = defaultGoTemplate
 
-	flagVersion = flag.BoolP("version", "v", false, "Prints program version information")
-	flagFile    = flag.StringP("file", "f", "-", "File to read input from. Defaults to stdin.")
-	flagInput   = flag.StringP("input", "i", "json", "Input format. One of: "+inputFuncMap.Options())
-	flagOutput  = flag.StringP("output", "o", "go-template", "Output format. One of: "+outputFuncMap.Options())
-	flagSimple  = flag.BoolP("simple", "s", true, `Automatically wraps Go template in "{{ ... }}" if not already`)
-	flagLines   = flag.BoolP("lines", "l", false, "Apply the operation to each line rather than the whole input")
-	flagRange   = flag.BoolP("range", "r", false, `Wraps Go template in "{{ range . }}{{ ... }}{{ end }}" for convenience`)
+	flagVersion      = flag.BoolP("version", "v", false, "Prints program version information")
+	flagFile         = flag.StringP("file", "f", "-", "File to read input from. Defaults to stdin.")
+	flagInput        = flag.StringP("input", "i", "json", "Input format. One of: "+inputFuncMap.Options())
+	flagOutput       = flag.StringP("output", "o", "go-template", "Output format. One of: "+outputFuncMap.Options())
+	flagSimple       = flag.BoolP("simple", "s", true, `Automatically wraps Go template in "{{ ... }}" if not already`)
+	flagLines        = flag.BoolP("lines", "l", false, "Apply the operation to each line rather than the whole input")
+	flagRange        = flag.BoolP("range", "r", false, `Wraps Go template in "{{ range . }}{{ ... }}{{ end }}" for convenience`)
+	flagHCL2Simplify = flag.Bool("hcl2-simplify", false, "Simplify HCL 2")
 )
 
 func init() {
