@@ -1,9 +1,10 @@
 **/.idea/*
+**/.task/*
 
 **/.DS_Store
 
-bin/*
-test/*
+bin/
+test/
 book/
 
 *.tf
