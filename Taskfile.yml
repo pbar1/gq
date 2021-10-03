@@ -8,7 +8,7 @@ env:
 vars:
   BIN:
     sh: basename "${PWD}"
-  IMAGE: docker.pkg.github.com/pbar1/{{.BIN}}/{{.BIN}}
+  IMAGE: ghcr.io/pbar1/{{.BIN}}
   BUILD_IMAGE: docker.io/library/golang:alpine
   VERSION:
     sh: git describe --tags --always --dirty
