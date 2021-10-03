@@ -4,11 +4,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-
-	"github.com/hashicorp/hcl"
-	json "github.com/json-iterator/go"
-	"github.com/pelletier/go-toml"
-	"gopkg.in/yaml.v2"
 )
 
 type (
@@ -17,41 +12,42 @@ type (
 )
 
 var (
-	inputFuncMap = InputFuncMap{
-		"json": json.Unmarshal,
-		"yaml": yaml.Unmarshal,
-		"toml": toml.Unmarshal,
-		"hcl":  hcl.Unmarshal,
-		"hcl2": hcl2Unmarshal,
+	InputFuncs = InputFuncMap{
+		"json": JSONInput,
+		"yaml": YAMLInput,
+		"toml": TOMLInput,
+		"hcl1": HCL1Input,
+		"hcl2": HCL2Input,
+		"hcl":  HCL2Input,
 	}
 
-	outputFuncMap = OutputFuncMap{
-		"go-template": goTemplateMarshal,
-		"jsonpath":    jsonpathMarshal,
-		"json":        json.Marshal,
-		"yaml":        yaml.Marshal,
-		"toml":        toml.Marshal,
+	OutputFuncs = OutputFuncMap{
+		"json":        JSONOutput,
+		"yaml":        YAMLOutput,
+		"toml":        TOMLOutput,
+		"go-template": GoTemplateOutput,
+		"jsonpath":    JSONPathOutput,
 	}
 )
 
-// input unmarshals raw bytes into the specified format and returns an object.
-func input(in []byte, format string) (interface{}, error) {
-	unmarshal, found := inputFuncMap[strings.ToLower(format)]
+// Input decodes raw bytes into the specified format and returns an object.
+func Input(in []byte, format string) (interface{}, error) {
+	input, found := InputFuncs[strings.ToLower(format)]
 	if !found {
 		return nil, fmt.Errorf("unsupported input format: %s", format)
 	}
 	var v interface{}
-	err := unmarshal(in, &v)
+	err := input(in, &v)
 	return v, err
 }
 
-// output marshals an object into the specified format and returns raw bytes.
-func output(obj interface{}, format string) ([]byte, error) {
-	marshal, found := outputFuncMap[strings.ToLower(format)]
+// Output encodes an object into the specified format and returns raw bytes.
+func Output(obj interface{}, format string) ([]byte, error) {
+	output, found := OutputFuncs[strings.ToLower(format)]
 	if !found {
 		return nil, fmt.Errorf("unsupported output format: %s", format)
 	}
-	return marshal(obj)
+	return output(obj)
 }
 
 func (m *InputFuncMap) Options() string {

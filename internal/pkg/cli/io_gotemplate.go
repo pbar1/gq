@@ -13,10 +13,10 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-const defaultGoTemplate = "{{.}}"
+const DefaultGoTemplate = "{{.}}"
 
-// goTemplateMarshal renders a Go template. Supports Sprig functions.
-func goTemplateMarshal(v interface{}) ([]byte, error) {
+// GoTemplateOutput renders a Go template. Supports Sprig and a few custom functions.
+func GoTemplateOutput(v interface{}) ([]byte, error) {
 	t := argTemplate
 
 	if !strings.Contains(t, "{{") {

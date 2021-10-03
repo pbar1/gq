@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	helpText = `Converts between input and output formats, including Go templates. Reads from stdin and writes to stdout.
+	helpText = `Converts between Input and Output formats, including Go templates. Reads from stdin and writes to stdout.
 Default Go template is "{{ . }}"
 
 Examples:
@@ -31,14 +31,14 @@ Flags:`
 )
 
 var (
-	argTemplate = defaultGoTemplate
+	argTemplate = DefaultGoTemplate
 
 	flagVersion      = flag.BoolP("version", "v", false, "Prints program version information")
-	flagFile         = flag.StringP("file", "f", "-", "File to read input from. Defaults to stdin.")
-	flagInput        = flag.StringP("input", "i", "json", "Input format. One of: "+inputFuncMap.Options())
-	flagOutput       = flag.StringP("output", "o", "go-template", "Output format. One of: "+outputFuncMap.Options())
+	flagFile         = flag.StringP("file", "f", "-", "File to read Input from. Defaults to stdin.")
+	flagInput        = flag.StringP("Input", "i", "json", "Input format. One of: "+InputFuncs.Options())
+	flagOutput       = flag.StringP("Output", "o", "go-template", "Output format. One of: "+OutputFuncs.Options())
 	flagSimple       = flag.BoolP("simple", "s", true, `Automatically wraps Go template in "{{ ... }}" if not already`)
-	flagLines        = flag.BoolP("lines", "l", false, "Apply the operation to each line rather than the whole input")
+	flagLines        = flag.BoolP("lines", "l", false, "Apply the operation to each line rather than the whole Input")
 	flagRange        = flag.BoolP("range", "r", false, `Wraps Go template in "{{ range . }}{{ ... }}{{ end }}" for convenience`)
 	flagHCL2Simplify = flag.Bool("hcl2-simplify", false, "Simplify HCL 2")
 )
@@ -65,28 +65,28 @@ func Execute(version string) {
 		argTemplate = strings.Join(flag.Args(), " ")
 	}
 
-	// either read input line-by-line, or read whole input at once
+	// either read Input line-by-line, or read whole Input at once
 	if *flagLines {
 		var scanner *bufio.Scanner
 		if *flagFile == "" || *flagFile == "-" {
 			scanner = bufio.NewScanner(os.Stdin)
 		} else {
 			file, err := os.Open(*flagFile)
-			check(err, "unable to open input file "+*flagFile)
+			check(err, "unable to open Input file "+*flagFile)
 			scanner = bufio.NewScanner(file)
 		}
 		for scanner.Scan() {
-			intermediate, err := input(scanner.Bytes(), *flagInput)
+			intermediate, err := Input(scanner.Bytes(), *flagInput)
 			if err != nil {
-				msg := "unable to parse input as " + *flagInput
+				msg := "unable to parse Input as " + *flagInput
 				if _, err := fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err); err != nil {
 					panic(err)
 				}
 				continue
 			}
-			out, err := output(intermediate, *flagOutput)
+			out, err := Output(intermediate, *flagOutput)
 			if err != nil {
-				msg := "unable to render output as " + *flagOutput
+				msg := "unable to render Output as " + *flagOutput
 				if _, err := fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err); err != nil {
 					panic(err)
 				}
@@ -105,11 +105,11 @@ func Execute(version string) {
 		} else {
 			in, err = ioutil.ReadFile(*flagFile)
 		}
-		check(err, "unable to read input from "+*flagFile)
-		intermediate, err := input(in, *flagInput)
-		check(err, "unable to parse input as "+*flagInput)
-		out, err := output(intermediate, *flagOutput)
-		check(err, "unable to render output as "+*flagOutput)
+		check(err, "unable to read Input from "+*flagFile)
+		intermediate, err := Input(in, *flagInput)
+		check(err, "unable to parse Input as "+*flagInput)
+		out, err := Output(intermediate, *flagOutput)
+		check(err, "unable to render Output as "+*flagOutput)
 		fmt.Println(string(out))
 	}
 }

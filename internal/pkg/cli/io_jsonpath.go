@@ -8,16 +8,16 @@ import (
 	"k8s.io/client-go/util/jsonpath"
 )
 
-const defaultJSONPathTemplate = "{}"
+const DefaultJSONPathTemplate = "{}"
 
-// jsonpathMarshal renders a JSONPath template given in Kubernetes CLI format.
+// JSONPathOutput renders a JSONPath template given in Kubernetes CLI format.
 // More information: https://kubernetes.io/docs/reference/kubectl/jsonpath/
 // TODO: https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/kubectl/pkg/cmd/get/customcolumn.go
-func jsonpathMarshal(v interface{}) ([]byte, error) {
+func JSONPathOutput(v interface{}) ([]byte, error) {
 	// since Go templates are the default, need to reset default template when opting for JSONPath
 	t := argTemplate
-	if t == defaultGoTemplate {
-		t = defaultJSONPathTemplate
+	if t == DefaultGoTemplate {
+		t = DefaultJSONPathTemplate
 	}
 
 	if *flagSimple {
