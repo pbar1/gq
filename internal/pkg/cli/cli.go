@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	helpText = `Converts between Input and Output formats, including Go templates. Reads from stdin and writes to stdout.
+	helpText = `Go template command line filter like sed/awk/jq. Reads from stdin and writes to stdout.
 Default Go template is "{{ . }}"
 
 Examples:
@@ -21,7 +21,7 @@ Examples:
   You can omit the "{{ }}" if the Go template would be entirely contained within it. Sprig functions and more are available.
   $ kubectl get secret demo-tls -o json | gq '(index (index .data "tls.crt" | b64dec | x509Decode) 0).NotBefore'
 
-  Convert Terraform HCL (v1) into JSON and feed that into jq for querying
+  Convert Terraform HCL into JSON and feed that into jq for querying
   $ cat *.tf | gq -i hcl -o json | jq
 
 Usage:
@@ -33,12 +33,13 @@ Flags:`
 var (
 	argTemplate = DefaultGoTemplate
 
+	flagHelp         = flag.BoolP("help", "h", false, "Prints program usage information")
 	flagVersion      = flag.BoolP("version", "v", false, "Prints program version information")
-	flagFile         = flag.StringP("file", "f", "-", "File to read Input from. Defaults to stdin.")
+	flagFile         = flag.StringP("file", "f", "-", "File to read input from. Defaults to stdin.")
 	flagInput        = flag.StringP("Input", "i", "json", "Input format. One of: "+InputFuncs.Options())
 	flagOutput       = flag.StringP("Output", "o", "go-template", "Output format. One of: "+OutputFuncs.Options())
 	flagSimple       = flag.BoolP("simple", "s", true, `Automatically wraps Go template in "{{ ... }}" if not already`)
-	flagLines        = flag.BoolP("lines", "l", false, "Apply the operation to each line rather than the whole Input")
+	flagLines        = flag.BoolP("lines", "l", false, "Apply the operation to each line rather than the whole input")
 	flagRange        = flag.BoolP("range", "r", false, `Wraps Go template in "{{ range . }}{{ ... }}{{ end }}" for convenience`)
 	flagHCL2Simplify = flag.Bool("hcl2-simplify", false, "Simplify HCL 2")
 )
@@ -54,6 +55,11 @@ func init() {
 // Execute is the entrypoint command
 func Execute(version string) {
 	flag.Parse()
+
+	if *flagHelp {
+		flag.Usage()
+		os.Exit(0)
+	}
 
 	if *flagVersion {
 		fmt.Println(version)
@@ -72,13 +78,13 @@ func Execute(version string) {
 			scanner = bufio.NewScanner(os.Stdin)
 		} else {
 			file, err := os.Open(*flagFile)
-			check(err, "unable to open Input file "+*flagFile)
+			check(err, "unable to open input file "+*flagFile)
 			scanner = bufio.NewScanner(file)
 		}
 		for scanner.Scan() {
 			intermediate, err := Input(scanner.Bytes(), *flagInput)
 			if err != nil {
-				msg := "unable to parse Input as " + *flagInput
+				msg := "unable to parse input as " + *flagInput
 				if _, err := fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err); err != nil {
 					panic(err)
 				}
@@ -86,7 +92,7 @@ func Execute(version string) {
 			}
 			out, err := Output(intermediate, *flagOutput)
 			if err != nil {
-				msg := "unable to render Output as " + *flagOutput
+				msg := "unable to render output as " + *flagOutput
 				if _, err := fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err); err != nil {
 					panic(err)
 				}
@@ -105,11 +111,11 @@ func Execute(version string) {
 		} else {
 			in, err = ioutil.ReadFile(*flagFile)
 		}
-		check(err, "unable to read Input from "+*flagFile)
+		check(err, "unable to read input from "+*flagFile)
 		intermediate, err := Input(in, *flagInput)
-		check(err, "unable to parse Input as "+*flagInput)
+		check(err, "unable to parse input as "+*flagInput)
 		out, err := Output(intermediate, *flagOutput)
-		check(err, "unable to render Output as "+*flagOutput)
+		check(err, "unable to render output as "+*flagOutput)
 		fmt.Println(string(out))
 	}
 }
