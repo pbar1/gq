@@ -2,8 +2,13 @@ package main
 
 import "github.com/pbar1/gq/internal/pkg/cli"
 
-var version = "unknown"
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+	builtBy = "unknown"
+)
 
 func main() {
-	cli.Execute(version)
+	cli.Execute(version, commit, date, builtBy)
 }

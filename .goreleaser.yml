@@ -1,0 +1,43 @@
+builds:
+- binary: gq
+  goos:
+  - darwin
+  - linux
+  - windows
+  goarch:
+  - amd64
+  - arm64
+  ignore:
+  - goos: windows
+    goarch: arm64
+  env:
+  - CGO_ENABLED=0
+  # Don't set main.version (and others), as they're already set
+  ldflags:
+  - -s -w
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+#changelog:
+#  sort: asc
+#  filters:
+#    exclude:
+#    - '^docs:'
+#    - '^test:'
+
+#brews:
+#- name: gq
+#  description: Go template command line filter like sed/awk/jq
+#  license: MIT
+#  homepage: https://github.com/pbar1/gq
+#  tap:
+#    owner: pbar1
+#    name: gq
+#    branch: "homebrew-tap"
+#  test:
+#    system "#{bin}/gq", "--help"
+#  skip_upload: true

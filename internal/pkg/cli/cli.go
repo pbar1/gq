@@ -53,7 +53,7 @@ func init() {
 }
 
 // Execute is the entrypoint command
-func Execute(version string) {
+func Execute(version, commit, date, builtBy string) {
 	flag.Parse()
 
 	if *flagHelp {
@@ -62,7 +62,10 @@ func Execute(version string) {
 	}
 
 	if *flagVersion {
-		fmt.Println(version)
+		fmt.Printf("version: %s\n", version)
+		fmt.Printf("commit: %s\n", commit)
+		fmt.Printf("date: %s\n", date)
+		fmt.Printf("builtBy: %s\n", builtBy)
 		os.Exit(0)
 	}
 
